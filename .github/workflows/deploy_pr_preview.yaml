@@ -21,6 +21,7 @@ jobs:
       packages: read
     with:
       base-url: ${{ github.event_name == 'pull_request_target' && format('/documentation/pr-preview/pr-{0}', github.event.pull_request.number) || '/documentation' }}
+      pr-ref: ${{ github.event.pull_request.head.sha }} 
 
   deploy-preview:
     name: Deploy Preview

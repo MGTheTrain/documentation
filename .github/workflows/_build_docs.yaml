@@ -8,10 +8,15 @@ on:
         required: false
         type: string
         default: '/documentation'
+      pr-ref:
+        description: 'Git ref to checkout (for PR previews)'
+        required: false
+        type: string
+        default: ''
     outputs:
       artifact-name:
         description: "Name of the uploaded build artifact"
-        value: documentation-artifacts
+        value: ${{ jobs.build.outputs.artifact-name }} 
 
 jobs:
   check_markdown_syntax:
@@ -19,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.pr-ref || github.ref }}
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.4
@@ -31,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.pr-ref || github.ref }}
       - run: ./tools/check-file-names.sh
 
   check_shell_scripts:
@@ -38,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.pr-ref || github.ref }}
       - run: sudo apt-get install --yes shellcheck
       - run: shellcheck **/*.sh
 
@@ -46,6 +57,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.pr-ref || github.ref }}
       - run: pip install -r tools/requirements.txt
       - run: black --check .
       - run: isort --profile black --filter-files --check .
@@ -58,8 +71,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: read
+    outputs:
+      artifact-name: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.pr-ref || github.ref }}
       
       - uses: actions/checkout@v6
         with:
@@ -90,11 +107,9 @@ jobs:
           BASE_URL: ${{ inputs.base-url }}
 
       - name: Upload artifact
+        id: upload
         uses: actions/upload-artifact@v4
         with:
           name: documentation-artifacts
           path: website/build
           retention-days: 7
-      
-      - name: Set output
-        run: echo "artifact-name=documentation-artifacts" >> $GITHUB_OUTPUT
