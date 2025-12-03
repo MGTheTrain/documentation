@@ -16,7 +16,7 @@ on:
     outputs:
       artifact-name:
         description: "Name of the uploaded build artifact"
-        value: ${{ jobs.build.outputs.artifact-name }} 
+        value: ${{ jobs.build.outputs.artifact-name }}
 
 jobs:
   check_markdown_syntax:
@@ -67,12 +67,12 @@ jobs:
 
   build:
     name: Build
+    outputs:
+      artifact-name: documentation-artifacts
     needs: [check_markdown_syntax, check_file_names, check_shell_scripts, check_python_scripts]
     runs-on: ubuntu-latest
     permissions:
       packages: read
-    outputs:
-      artifact-name: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -107,7 +107,6 @@ jobs:
           BASE_URL: ${{ inputs.base-url }}
 
       - name: Upload artifact
-        id: upload
         uses: actions/upload-artifact@v4
         with:
           name: documentation-artifacts
